@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
-const apiKey = process.env.BINANCE_API_KEY!;
-const apiSecret = process.env.BINANCE_SECRET_KEY!;
+const apiKey = process.env.BINANCE_API_KEY;
+const apiSecret = process.env.BINANCE_SECRET_KEY;
 
 export async function GET() {
   const timestamp = Date.now();

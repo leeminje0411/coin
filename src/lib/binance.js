@@ -5,7 +5,7 @@ const apiSecret = process.env.NEXT_PUBLIC_BINANCE_API_SECRET || '';
 
 export const binanceClient = new Spot(apiKey, apiSecret);
 
-export const getTickerPrice = async (symbol: string) => {
+export const getTickerPrice = async (symbol) => {
   try {
     const response = await binanceClient.tickerPrice(symbol);
     return response.data;
@@ -15,7 +15,7 @@ export const getTickerPrice = async (symbol: string) => {
   }
 };
 
-export const get24hrTicker = async (symbol: string) => {
+export const get24hrTicker = async (symbol) => {
   try {
     const response = await binanceClient.ticker24hr(symbol);
     return response.data;
@@ -25,7 +25,7 @@ export const get24hrTicker = async (symbol: string) => {
   }
 };
 
-export const getKlines = async (symbol: string, interval: string, limit: number = 100) => {
+export const getKlines = async (symbol, interval, limit = 100) => {
   try {
     const response = await binanceClient.klines(symbol, interval, { limit });
     return response.data;

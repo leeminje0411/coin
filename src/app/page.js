@@ -23,12 +23,12 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
-const symbolMap: Record<string, string> = {
+const symbolMap = {
   BTCUSDT: '비트코인',
   ETHUSDT: '이더리움',
 };
 
-const sideMap: Record<string, string> = {
+const sideMap = {
   BUY: '롱',
   SELL: '숏',
 };
@@ -38,7 +38,7 @@ const iconMap = {
   ETHUSDT: <img src="/ethereum.svg" alt="ETH" className="w-8 h-8" />,
 };
 
-function formatDate(dateString: string) {
+function formatDate(dateString) {
   const d = new Date(dateString);
   const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
   const now = new Date();
@@ -46,30 +46,35 @@ function formatDate(dateString: string) {
   return `${isSameYear ? '' : kst.getFullYear() + '-'}${String(kst.getMonth() + 1).padStart(2, '0')}-${String(kst.getDate()).padStart(2, '0')} ${kst.getHours()}:${String(kst.getMinutes()).padStart(2, '0')}`;
 }
 
-function formatDateLabel(dateString: string, range: string) {
+function formatDateLabel(dateString, range) {
   const d = new Date(dateString);
   return range === '1일'
     ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
     : `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
-function formatPrice(price: number | null) {
+function formatPrice(price) {
   if (!price) return '-';
   return `$${Math.floor(price).toLocaleString()}`;
 }
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
-  const [trades, setTrades] = useState<any[]>([]);
-  const [dailyStats, setDailyStats] = useState<any>(null);
-  const [currentTime, setCurrentTime] = useState<string>('');
-  const [btcPrice, setBtcPrice] = useState<number | null>(null);
-  const [ethPrice, setEthPrice] = useState<number | null>(null);
+  const [trades, setTrades] = useState([]);
+  const [dailyStats, setDailyStats] = useState(null);
+  const [currentTime, setCurrentTime] = useState('');
+  const [btcPrice, setBtcPrice] = useState(null);
+  const [ethPrice, setEthPrice] = useState(null);
   const [chartMode, setChartMode] = useState('PnL 시간순');
-  const [currentBalance, setCurrentBalance] = useState<number | null>(null);
+  const [currentBalance, setCurrentBalance] = useState(null);
   const [showAllSchedules, setShowAllSchedules] = useState(false);
-  const [allSchedules, setAllSchedules] = useState<Array<{ scheduled_time: string }>>([]);
-  const [dailyPerformance, setDailyPerformance] = useState<any[]>([]);
+  const [allSchedules, setAllSchedules] = useState([]);
+  const [dailyPerformance, setDailyPerformance] = useState([]);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [password, setPassword] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [chartRange, setChartRange] = useState('전체');
+  const rangeOptions = ['1일', '7일', '30일', '전체'];
   
   const fetchAllSchedules = async () => {
     const { data, error } = await supabase
@@ -83,11 +88,6 @@ export default function Dashboard() {
       setShowAllSchedules(true);
     }
   };
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [password, setPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [chartRange, setChartRange] = useState('전체');
-  const rangeOptions = ['1일', '7일', '30일', '전체'];
 
   useEffect(() => {
     // 세션 확인
@@ -154,7 +154,7 @@ export default function Dashboard() {
         const todayEntryAmount = todayTrades.reduce((sum, t) => sum + (t.entry_amount || 0), 0);
         console.log("💰 오늘 진입금 합계:", todayEntryAmount);
 
-        setDailyStats((prev: any) => prev ? { ...prev, today_entry_amount: todayEntryAmount } : { today_entry_amount: todayEntryAmount });
+        setDailyStats((prev) => prev ? { ...prev, today_entry_amount: todayEntryAmount } : { today_entry_amount: todayEntryAmount });
       }
     };
 
