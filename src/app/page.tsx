@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import type { ReactElement } from 'react';
 import { supabase } from '../lib/supabase';
 import { 
   ChartBarIcon, 
@@ -34,7 +33,7 @@ const sideMap: Record<string, string> = {
   SELL: '숏',
 };
 
-const iconMap: Record<string, ReactElement> = {
+const iconMap: Record<string, JSX.Element> = {
   BTCUSDT: <img src="/bitcoin.svg" alt="BTC" className="w-8 h-8" />,
   ETHUSDT: <img src="/ethereum.svg" alt="ETH" className="w-8 h-8" />,
 };
