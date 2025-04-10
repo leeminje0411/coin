@@ -40,17 +40,9 @@ const iconMap: Record<string, JSX.Element> = {
 
 function formatDate(dateString: string) {
   const d = new Date(dateString);
-  const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
   const now = new Date();
-  const isSameYear = kst.getFullYear() === now.getFullYear();
-  return `${isSameYear ? '' : kst.getFullYear() + '-'}${String(kst.getMonth() + 1).padStart(2, '0')}-${String(kst.getDate()).padStart(2, '0')} ${kst.getHours()}:${String(kst.getMinutes()).padStart(2, '0')}`;
-}
-
-function formatDateLabel(dateString: string, range: string) {
-  const d = new Date(dateString);
-  return range === '1일'
-    ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-    : `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  const isSameYear = d.getFullYear() === now.getFullYear();
+  return `${isSameYear ? '' : d.getFullYear() + '-'}${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
 function formatPrice(price: number | null) {
@@ -69,7 +61,6 @@ export default function Dashboard() {
   const [currentBalance, setCurrentBalance] = useState<number | null>(null);
   const [showAllSchedules, setShowAllSchedules] = useState(false);
   const [allSchedules, setAllSchedules] = useState<Array<{ scheduled_time: string }>>([]);
-  const [dailyPerformance, setDailyPerformance] = useState<any[]>([]);
   
   const fetchAllSchedules = async () => {
     const { data, error } = await supabase
@@ -86,8 +77,6 @@ export default function Dashboard() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [chartRange, setChartRange] = useState('전체');
-  const rangeOptions = ['1일', '7일', '30일', '전체'];
 
   useEffect(() => {
     // 세션 확인
@@ -180,7 +169,7 @@ export default function Dashboard() {
         latest.average_entry_count = averageEntryCount;
         
         const now = new Date();
-        const utcNow = new Date();
+        const utcNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString();
         
         const { data: scheduleData, error: scheduleError } = await supabase
           .from('scheduled_trades')
@@ -197,30 +186,7 @@ export default function Dashboard() {
           }
         }
         
-        const { data: todayTrades, error: tradeError } = await supabase
-          .from('trades')
-          .select('entry_amount, created_at');
-
-        console.log("🧾 Supabase 오늘 trades 호출 결과:", todayTrades);
-        if (tradeError) console.error("❌ trades fetch 실패:", tradeError);
-
-        const localNow = new Date();
-        const kstStart = new Date(localNow.getFullYear(), localNow.getMonth(), localNow.getDate());
-        const utcStart = new Date(kstStart.getTime() - 9 * 60 * 60 * 1000);
-        const utcEnd = new Date(utcStart.getTime() + 24 * 60 * 60 * 1000);
-
-        const todayFiltered = todayTrades.filter(t => {
-          const created = new Date(t.created_at);
-          return created >= utcStart && created < utcEnd;
-        });
-
-        console.log("📌 오늘 날짜 필터 통과 trades 수:", todayFiltered.length);
-        console.log("📦 통과된 entry_amount 리스트:", todayFiltered.map(t => t.entry_amount));
-
-        const todayEntryAmount = todayFiltered.reduce((sum, t) => sum + (t.entry_amount || 0), 0);
-        console.log("💰 최종 오늘 진입금 합계:", todayEntryAmount);
-
-        setDailyStats(prev => prev ? { ...prev, ...latest, today_entry_amount: todayEntryAmount } : { ...latest, today_entry_amount: 0 });
+        setDailyStats(prev => prev ? { ...prev, ...latest } : latest);
       }
     };
 
@@ -283,19 +249,6 @@ export default function Dashboard() {
     };
   }, []);
 
-  useEffect(() => {
-    const fetchDailyPerformance = async () => {
-      const { data, error } = await supabase
-        .from('daily_performance')
-        .select('*')
-        .order('date', { ascending: true });
-      if (error) console.error('❌ Supabase fetch error (daily_performance):', error);
-      else setDailyPerformance(data || []);
-    };
-
-    fetchDailyPerformance();
-  }, []);
-
   const stats = dailyStats ? [
     { 
       name: '오늘 총 진입 수', 
@@ -337,61 +290,22 @@ export default function Dashboard() {
     }
   ] : [];
 
-  const chartData = (() => {
-    const now = new Date();
-    let filteredTrades = [...trades];
-    let filteredDailyData = [...dailyPerformance];
-
-    if (chartRange === '1일') {
-      const since = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
-      filteredTrades = filteredTrades.filter(t => new Date(t.entry_time) >= since);
-      filteredDailyData = filteredDailyData.filter(d => new Date(d.date) >= since);
-    } else if (chartRange === '7일') {
-      const since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      filteredTrades = filteredTrades.filter(t => new Date(t.entry_time) >= since);
-      filteredDailyData = filteredDailyData.filter(d => new Date(d.date) >= since);
-    } else if (chartRange === '30일') {
-      const since = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      filteredTrades = filteredTrades.filter(t => new Date(t.entry_time) >= since);
-      filteredDailyData = filteredDailyData.filter(d => new Date(d.date) >= since);
-    }
-
-    filteredTrades = filteredTrades
-      .filter(t => t.is_win !== null)
-      .sort((a, b) => new Date(a.entry_time).getTime() - new Date(b.entry_time).getTime());
-
-    return {
-      labels: chartMode === '승률 변화 추이'
-        ? (chartRange === '전체'
-          ? filteredTrades.map(t => formatDateLabel(t.entry_time, chartRange))
-          : filteredDailyData.map(d => formatDateLabel(d.date, chartRange)))
-        : filteredTrades.map(t => formatDateLabel(t.entry_time, chartRange)),
-      datasets: [
-        {
-          label: chartMode === 'PnL 시간순' ? 'PnL' : chartMode === '진입 수 시간순' ? '진입 수' : '승률',
-          data: chartMode === '승률 변화 추이'
-            ? (chartRange === '전체'
-              ? (() => {
-                  let win = 0, total = 0;
-                  return filteredTrades.map(t => {
-                    total++;
-                    if (t.is_win) win++;
-                    return parseFloat(((win / total) * 100).toFixed(2));
-                  });
-                })()
-              : filteredDailyData.map(d => d.win_rate))
-            : chartMode === 'PnL 시간순'
-              ? filteredTrades.map(t => t.pnl)
-              : chartMode === '진입 수 시간순'
-                ? filteredTrades.map((_, i) => i + 1)
-                : filteredTrades.map(t => t.entry_amount || 0),
-          fill: false,
-          backgroundColor: 'rgba(75,192,192,0.4)',
-          borderColor: 'rgba(75,192,192,1)',
-        }
-      ]
-    };
-  })();
+  const chartData = {
+    labels: [...trades].reverse().map(trade => formatDate(trade.entry_time)),
+    datasets: [
+      {
+        label: chartMode === 'PnL 시간순' ? 'PnL' : chartMode === '진입 수 시간순' ? '진입 수' : '승률',
+        data: [...trades].reverse().map(trade => 
+          chartMode === 'PnL 시간순' ? trade.pnl : 
+          chartMode === '진입 수 시간순' ? trade.entry_count : 
+          dailyStats?.win_rate || 0
+        ),
+        fill: false,
+        backgroundColor: 'rgba(75,192,192,0.4)',
+        borderColor: 'rgba(75,192,192,1)',
+      }
+    ]
+  };
 
   const handleDeleteAllData = async () => {
     if (!isAuthenticated) {
@@ -450,7 +364,7 @@ export default function Dashboard() {
                   <ArrowTrendingUpIcon className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-indigo-200">누적 손익</p>
+                  <p className="text-xs font-medium text-indigo-200">누적 수익</p>
                   <p className="text-base font-bold text-white">
                     {dailyStats?.total_pnl !== undefined ? `$${Math.floor(dailyStats.total_pnl).toLocaleString()} ` : '-'}
                     <span className="text-xs text-indigo-200">USDT</span>
@@ -465,6 +379,17 @@ export default function Dashboard() {
                   <p className="text-xs font-medium text-indigo-200">누적 승률</p>
                   <p className="text-base font-bold text-white">
                     {dailyStats?.total_win_rate !== undefined ? `${dailyStats.total_win_rate.toFixed(2)}%` : '-'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-xl rounded-xl">
+                <div className="w-6 h-6 flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg shadow-lg">
+                  <ArrowPathIcon className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-indigo-200">일 평균 진입</p>
+                  <p className="text-base font-bold text-white">
+                    {dailyStats?.average_entry_count !== undefined ? `${Math.round(dailyStats.average_entry_count)}회` : '-'}
                   </p>
                 </div>
               </div>
@@ -499,7 +424,7 @@ export default function Dashboard() {
         {/* 📊 상단 요약 정보 표시 */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 rounded-xl shadow-sm p-6 border border-purple-400/20">
-            <p className="text-sm text-purple-100 mb-1">금일 손익</p>
+            <p className="text-sm text-purple-100 mb-1">오늘 수익</p>
             <p className="text-2xl font-bold text-white">
               {dailyStats ? `$${Math.floor(dailyStats.pnl || 0).toLocaleString()} ` : '-'}
               <span className="text-lg text-slate-400">USDT</span>
@@ -549,7 +474,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-slate-900">거래량 추이</h2>
                 <div className="flex space-x-2">
-                  {['PnL 시간순', '진입 수 시간순', '승률 변화 추이'].map((period) => (
+                  {['PnL 시간순', '진입 수 시간순', '승률 시간순'].map((period) => (
                     <button
                       key={period}
                       className={`px-4 py-2 text-sm font-medium ${chartMode === period ? 'text-slate-900 bg-slate-200' : 'text-slate-600 hover:text-slate-900 bg-slate-100'} rounded-lg hover:bg-slate-200 transition-colors duration-200`}
@@ -559,30 +484,9 @@ export default function Dashboard() {
                     </button>
                   ))}
                 </div>
-                <div className="ml-4 space-x-2">
-                  {rangeOptions.map(range => (
-                    <button
-                      key={range}
-                      className={`px-3 py-1 text-xs font-medium border rounded ${chartRange === range ? 'bg-indigo-500 text-white' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'}`}
-                      onClick={() => setChartRange(range)}
-                    >
-                      {range}
-                    </button>
-                  ))}
-                </div>
               </div>
               <div className="h-[300px]">
-                <Line 
-                  data={chartData} 
-                  options={{ 
-                    maintainAspectRatio: false,
-                    scales: {
-                      x: {
-                        ticks: chartRange === '1일' ? { display: false } : {},
-                      }
-                    }
-                  }} 
-                />
+                <Line data={chartData} options={{ maintainAspectRatio: false }} />
               </div>
             </div>
           </div>
