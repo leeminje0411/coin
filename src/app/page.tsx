@@ -154,7 +154,7 @@ export default function Dashboard() {
         const todayEntryAmount = todayTrades.reduce((sum, t) => sum + (t.entry_amount || 0), 0);
         console.log("💰 오늘 진입금 합계:", todayEntryAmount);
 
-        setDailyStats(prev => prev ? { ...prev, today_entry_amount: todayEntryAmount } : { today_entry_amount: todayEntryAmount });
+        setDailyStats((prev: any) => prev ? { ...prev, today_entry_amount: todayEntryAmount } : { today_entry_amount: todayEntryAmount });
       }
     };
 
