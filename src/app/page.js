@@ -35,7 +35,8 @@ function formatNumberForCopy(number) {
 }
 
 function formatDate(date) {
-  return new Date(date).toLocaleDateString('ko-KR');
+  const tradeDate = new Date(date);
+  return `${tradeDate.getMonth() + 1}.${tradeDate.getDate()}`;
 }
 
 function formatPrice(price) {
@@ -306,9 +307,6 @@ export default function TradingJournal() {
         },
         id: 2
       };
-      ws.send(JSON.stringify(subscribeBTC));
-      ws.send(JSON.stringify(subscribeETH));
-
       const subscribeSOL = {
         method: "sub.deal",
         param: {
@@ -323,13 +321,15 @@ export default function TradingJournal() {
         },
         id: 4
       };
+
+      ws.send(JSON.stringify(subscribeBTC));
+      ws.send(JSON.stringify(subscribeETH));
       ws.send(JSON.stringify(subscribeSOL));
       ws.send(JSON.stringify(subscribeXRP));
 
       // ping 메시지 전송 로직 추가
       const pingInterval = setInterval(() => {
         ws.send(JSON.stringify({ method: "ping" }));
-        console.log('ping 메시지 전송');
       }, 20000);
 
       ws.onclose = () => {
@@ -344,16 +344,27 @@ export default function TradingJournal() {
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log('WebSocket 메시지 수신:', data);
-
+      
       if (data.channel === 'push.deal' && data.data) {
         const symbol = data.symbol;
         const price = parseFloat(data.data.p);
 
-        if (symbol === 'BTC_USDT') setBtcPrice(price);
-        if (symbol === 'ETH_USDT') setEthPrice(price);
-        if (symbol === 'SOL_USDT') setSolPrice(price);
-        if (symbol === 'XRP_USDT') setXrpPrice(price);
+        if (symbol === 'BTC_USDT') {
+          setBtcPrice(price);
+          setCoinPrices(prev => ({ ...prev, btc: price }));
+        }
+        if (symbol === 'ETH_USDT') {
+          setEthPrice(price);
+          setCoinPrices(prev => ({ ...prev, eth: price }));
+        }
+        if (symbol === 'SOL_USDT') {
+          setSolPrice(price);
+          setCoinPrices(prev => ({ ...prev, sol: price }));
+        }
+        if (symbol === 'XRP_USDT') {
+          setXrpPrice(price);
+          setCoinPrices(prev => ({ ...prev, xrp: price }));
+        }
       }
     };
 
@@ -1003,48 +1014,8 @@ export default function TradingJournal() {
     return Math.floor(calculateLeverage(getLatestEndAmount()).leverage * leverageMultiplier);
   };
 
-  useEffect(() => {
-    const fetchCoinPrices = async () => {
-      try {
-        const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT'];
-        const prices = {};
-        
-        for (const symbol of symbols) {
-          const response = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`, {
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          const data = await response.json();
-          const coin = symbol.replace('USDT', '').toLowerCase();
-          prices[coin] = parseFloat(data.price);
-        }
-
-        setCoinPrices({
-          btc: prices.btc || 0,
-          eth: prices.eth || 0,
-          sol: prices.sol || 0,
-          xrp: prices.xrp || 0
-        });
-      } catch (error) {
-        console.error('Failed to fetch coin prices:', error);
-        // 에러 발생 시 기존 가격 유지
-      }
-    };
-
-    fetchCoinPrices();
-    const interval = setInterval(fetchCoinPrices, 10000); // 10초마다 업데이트
-    return () => clearInterval(interval);
-  }, []);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0B1120] via-[#0F172A] to-[#1E293B]">
+    <div className="min-h-screen bg-[#1a1a1a]">
       {/* 토스트 알림 */}
       <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ${
         toast.show ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'
@@ -1115,12 +1086,81 @@ export default function TradingJournal() {
           />
           <div className="p-8">
             <main>
+              {/* 영감 메시지 티커 */}
+              <div className="mb-8 overflow-hidden bg-[#1a1a1a] rounded-2xl border border-[#333]">
+                <div className="animate-ticker whitespace-nowrap py-4">
+                  <div className="inline-block">
+                    {[
+                      "💀 이 돈 깨지면 너 인생 끝이다. 0.47%만 하면 1년 뒤 1억인데 왜 무리하냐?",
+                      "🔥 6달 뒤면 제네시스 한대 뽑는데 그걸 못 참아? 손가락이 근질거리냐?",
+                      "⚡️ 0.47%만 하면 무조건 이기는 게임인데 왜 도박하냐?",
+                      "💪 손가락이 근질거리면 손목을 자르든가 해라. 이 돈이 너의 마지막 기회다",
+                      "🎯 0.47%만 하면 1년 뒤 1억인데 왜 무리해서 도박하냐?",
+                      "💥 이 돈 깨지면 너는 다시는 일어설 수 없다. 0.47%만 하면 되는데 왜 무리하냐?",
+                      "⚔️ 손가락이 근질거리면 손목을 자르든가 해라. 이 돈이 너의 마지막 기회다",
+                      "💢 6달 뒤면 제네시스 한대 뽑는데 그걸 못 참아? 손가락이 근질거리냐?",
+                      "🎪 0.47%만 하면 무조건 이기는 게임인데 왜 도박하냐?",
+                      "💣 이 돈 깨지면 너 인생 끝이다. 0.47%만 하면 1년 뒤 1억인데 왜 무리하냐?",
+                      "👊 이 돈이 너의 마지막 기회다. 0.47%만 하면 1년 뒤 1억인데 왜 무리하냐?",
+                      "💀 손가락이 근질거리면 손목을 자르든가 해라. 이 돈이 너의 마지막 기회다",
+                      "🔥 6달 뒤면 제네시스 한대 뽑는데 그걸 못 참아? 손가락이 근질거리냐?","뒷바라지하는 엄마, 아빠를 봐라. 그래도 도박할래?",
+                      "⚡️ 0.47%만 하면 무조건 이기는 게임인데 왜 도박하냐?",
+                      "💪 이 돈 깨지면 너는 다시는 일어설 수 없다. 0.47%만 하면 되는데 왜 병신짓하냐?",
+                      "🎯 손가락이 근질거리면 손목을 자르든가 해라. 이 돈이 너의 마지막 기회다",
+                      "�� 6달 뒤면 제네시스 한대 뽑는데 그걸 못 참아? 손가락이 근질거리냐?",
+                      "⚔️ 0.47%만 하면 무조건 이기는 게임인데 왜 도박하냐?",
+                      "💢 이 돈 깨지면 너는 다시는 일어설 수 없다. 0.47%만 하면 되는데 왜 무리하냐?",
+                      "🎪 손가락이 근질거리면 손목을 자르든가 해라. 이 돈이 너의 마지막 기회다",
+                      "💣 6달 뒤면 제네시스 한대 뽑는데 그걸 못 참아? 손가락이 근질거리냐?",
+                      "👊 0.47%만 하면 무조건 이기는 게임인데 왜 도박하냐?",
+                      "💀 이 돈 깨지면 너는 다시는 일어설 수 없다. 0.47%만 하면 되는데 왜 무리하냐?",
+                      "🔥 손가락이 근질거리면 손목을 자르든가 해라. 이 돈이 너의 마지막 기회다",
+                      "⚡️ 6달 뒤면 제네시스 한대 뽑는데 그걸 못 참아? 손가락이 근질거리냐?",
+                      "💪 0.47%만 하면 무조건 이기는 게임인데 왜 도박하냐?",
+                      "🎯 이 돈 깨지면 너는 다시는 일어설 수 없다. 0.47%만 하면 되는데 왜 무리하냐?",
+                      "💥 손가락이 근질거리면 손목을 자르든가 해라. 이 돈이 너의 마지막 기회다",
+                      "⚔️ 6달 뒤면 제네시스 한대 뽑는데 그걸 못 참아? 손가락이 근질거리냐?",
+                      "💢 0.47%만 하면 무조건 이기는 게임인데 왜 도박하냐?",
+                      "🎪 이 돈 깨지면 너는 다시는 일어설 수 없다. 0.47%만 하면 되는데 왜 무리하냐?",
+                      "💣 손가락이 근질거리면 손목을 자르든가 해라. 이 돈이 너의 마지막 기회다",
+                      "👊 6달 뒤면 제네시스 한대 뽑는데 그걸 못 참아? 손가락이 근질거리냐?",
+                      "💀 0.47%만 하면 무조건 이기는 게임인데 왜 도박하냐?",
+                      "🔥 이 돈 깨지면 너는 다시는 일어설 수 없다. 0.47%만 하면 되는데 왜 무리하냐?",
+                      "⚡️ 손가락이 근질거리면 손목을 자르든가 해라. 이 돈이 너의 마지막 기회다",
+                      "💪 6달 뒤면 제네시스 한대 뽑는데 그걸 못 참아? 손가락이 근질거리냐?",
+                      "🎯 0.47%만 하면 무조건 이기는 게임인데 왜 도박하냐?",
+                      "💥 이 돈 깨지면 너는 다시는 일어설 수 없다. 0.47%만 하면 되는데 왜 무리하냐?",
+                      "⚔️ 손가락이 근질거리면 손목을 자르든가 해라. 이 돈이 너의 마지막 기회다",
+                      "💢 6달 뒤면 제네시스 한대 뽑는데 그걸 못 참아? 손가락이 근질거리냐?",
+                      "🎪 0.47%만 하면 무조건 이기는 게임인데 왜 도박하냐?",
+                      "💣 이 돈 깨지면 너는 다시는 일어설 수 없다. 0.47%만 하면 되는데 왜 무리하냐?",
+                      "👊 손가락이 근질거리면 손목을 자르든가 해라. 이 돈이 너의 마지막 기회다",
+                      "�� 6달 뒤면 제네시스 한대 뽑는데 그걸 못 참아? 손가락이 근질거리냐?",
+                      "🔥 0.47%만 하면 무조건 이기는 게임인데 왜 도박하냐?",
+                      "⚡️ 이 돈 깨지면 너는 다시는 일어설 수 없다. 0.47%만 하면 되는데 왜 무리하냐?",
+                      "💪 손가락이 근질거리면 손목을 자르든가 해라. 이 돈이 너의 마지막 기회다",
+                      "🎯 6달 뒤면 제네시스 한대 뽑는데 그걸 못 참아? 손가락이 근질거리냐?",
+                      "💥 0.47%만 하면 무조건 이기는 게임인데 왜 도박하냐?",
+                      "⚔️ 이 돈 깨지면 너는 다시는 일어설 수 없다. 0.47%만 하면 되는데 왜 무리하냐?",
+                      "💢 손가락이 근질거리면 손목을 자르든가 해라. 이 돈이 너의 마지막 기회다",
+                      "🎪 6달 뒤면 제네시스 한대 뽑는데 그걸 못 참아? 손가락이 근질거리냐?",
+                      "💣 0.47%만 하면 무조건 이기는 게임인데 왜 도박하냐?",
+                      "👊 이 돈 깨지면 너는 다시는 일어설 수 없다. 0.47%만 하면 되는데 왜 무리하냐?"
+                    ].map((message, index) => (
+                      <span key={index} className="inline-block mx-8 text-white/70">
+                        {message}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               {/* 복리 수익 예측 카드 */}
               <div className="mb-8">
                 {trades.length > 0 ? (
                   renderPredictionCard(calculateCompoundReturns()[selectedMonth - 1])
                 ) : (
-                  <div className="bg-gradient-to-br from-[#1E293B]/95 to-[#0F172A]/95 backdrop-blur-2xl rounded-2xl shadow-xl p-6 border border-white/5 w-full">
+                  <div className="bg-[#1a1a1a] rounded-2xl shadow-xl p-6 border border-[#333] w-full">
                     <div className="flex items-center justify-center">
                       <span className="text-white/70">거래 데이터가 없습니다.</span>
                     </div>
@@ -1133,65 +1173,53 @@ export default function TradingJournal() {
 
               {/* 레버리지 계산 섹션 */}
               <div className="relative group mb-8">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-300"></div>
-                <div className="relative bg-gradient-to-br from-[#1E293B]/95 to-[#0F172A]/95 backdrop-blur-2xl rounded-2xl shadow-xl p-6 border border-white/5">
-                  <div className="flex items-center justify-between">
+                <div className="relative bg-[#1a1a1a] rounded-2xl shadow-xl p-6 border border-[#333]">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl">
-                        <ArrowTrendingUpIcon className="w-6 h-6 text-blue-400" />
+                      <div className="p-2 bg-gradient-to-br from-[#FF8000]/20 to-[#FF9500]/20 rounded-xl">
+                        <ArrowTrendingUpIcon className="w-6 h-6 text-[#FF8000]" />
                       </div>
                       <h2 className="text-xl font-bold text-white">진입금액</h2>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-1 bg-white/5 rounded-lg p-1">
+                      <div className="flex items-center gap-2">
                         {[1, 2, 3, 4].map((multiplier) => (
                           <button
                             key={multiplier}
                             onClick={() => setLeverageMultiplier(multiplier)}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                               leverageMultiplier === multiplier
-                                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
-                                : 'text-white/50 hover:text-white hover:bg-white/5'
+                                ? 'bg-[#FF8000] text-white'
+                                : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
                             }`}
                           >
                             {multiplier}x
                           </button>
                         ))}
                       </div>
-                      <div 
-                        onClick={() => handleCopyToClipboard(formatNumber(getLeverageAmount()))}
-                        className="flex items-center gap-2 text-2xl font-bold text-purple-400 cursor-pointer hover:text-purple-300 transition-colors group bg-white/5 px-4 py-2 rounded-xl hover:bg-white/10"
+                      <button
+                        onClick={() => handleCopyToClipboard(getLeverageAmount())}
+                        className="px-4 py-2 bg-[#FF8000] text-white rounded-lg hover:bg-[#FF9500] transition-all flex items-center gap-2"
                       >
-                        <span>{formatNumber(getLeverageAmount())} <span className="text-sm text-white/50">USDT</span></span>
-                        <svg 
-                          className="w-5 h-5 text-white/50 group-hover:text-white/70" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                        >
-                          <path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            strokeWidth="2" 
-                            d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" 
-                          />
+                        <span>클릭하여 복사하기</span>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                         </svg>
-                        <span className="text-sm text-white/50 group-hover:text-white/70">클릭하여 복사</span>
-                      </div>
+                      </button>
                     </div>
+                  </div>
+                  <div className="text-2xl font-bold text-[#FF8000]">
+                    {formatNumber(getLeverageAmount())} <span className="text-sm text-white/50">USDT</span>
                   </div>
                 </div>
               </div>
 
-              {/* 요약 카드 삭제 */}
-              
               <div className="space-y-8">
                 {/* 거래 기록과 캘린더 */}
-                <div className="grid grid-cols-2 gap-8">
+                <div className="space-y-8">
                   {/* 거래 기록 */}
                   <div className="relative group">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-300"></div>
-                    <div className="relative bg-gradient-to-br from-[#1E293B]/95 to-[#0F172A]/95 backdrop-blur-2xl rounded-2xl shadow-xl p-6 border border-white/5">
+                    <div className="relative bg-[#1a1a1a] rounded-2xl shadow-xl p-6 border border-[#333]">
                       <h2 className="text-xl font-bold text-white mb-6">거래 기록</h2>
                       
                       {/* 거래 입력 폼 */}
@@ -1236,16 +1264,15 @@ export default function TradingJournal() {
                             <>
                               <button
                                 onClick={handleCancel}
-                                className="w-[120px] bg-slate-600/90 hover:bg-slate-500/90 text-white rounded-xl p-3.5 flex items-center justify-center gap-2 font-medium transition-all shadow-lg shadow-slate-500/25 h-[50px] border border-white/5 relative z-10"
+                                className="w-[120px] bg-slate-600/90 hover:bg-slate-500/90 text-white rounded-xl p-3.5 flex items-center justify-center gap-2 font-medium transition-all h-[50px] border border-white/5 relative z-10"
                               >
                                 취소
                               </button>
                               <div className="flex-1 flex items-center gap-3">
                                 <button
                                   onClick={() => requireAuth(handleAddTrade)}
-                                  className="flex-1 bg-gradient-to-r from-[#4F46E5] via-[#7C3AED] to-[#DB2777] hover:from-[#4338CA] hover:via-[#6D28D9] hover:to-[#BE185D] text-white rounded-xl p-3.5 flex items-center justify-center gap-2 font-medium transition-all border-none outline-none shadow-none relative overflow-hidden group"
+                                  className="flex-1 bg-gradient-to-r from-[#4F46E5] via-[#7C3AED] to-[#DB2777] hover:from-[#4338CA] hover:via-[#6D28D9] hover:to-[#BE185D] text-white rounded-xl p-3.5 flex items-center justify-center gap-2 font-medium transition-all border-none outline-none"
                                 >
-                                  <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] bg-[length:250%_250%,100%_100%] animate-shimmer"></div>
                                   <div className="relative flex items-center justify-center gap-2">
                                     <PencilIcon className="h-5 w-5" />
                                     <span>수정</span>
@@ -1258,7 +1285,7 @@ export default function TradingJournal() {
                                       handleCancel();
                                     }
                                   })}
-                                  className="w-[120px] bg-rose-500/90 hover:bg-rose-600/90 text-white rounded-xl p-3.5 flex items-center justify-center gap-2 font-medium transition-all shadow-lg shadow-rose-500/25 h-[50px] border border-white/5"
+                                  className="w-[120px] bg-rose-500/90 hover:bg-rose-600/90 text-white rounded-xl p-3.5 flex items-center justify-center gap-2 font-medium transition-all h-[50px] border border-white/5"
                                 >
                                   <TrashIcon className="h-5 w-5" />
                                   <span>삭제</span>
@@ -1268,9 +1295,8 @@ export default function TradingJournal() {
                           ) : (
                             <button
                               onClick={() => requireAuth(handleAddTrade)}
-                              className="flex-1 bg-gradient-to-r from-[#4F46E5] via-[#7C3AED] to-[#DB2777] hover:from-[#4338CA] hover:via-[#6D28D9] hover:to-[#BE185D] text-white rounded-xl p-3.5 flex items-center justify-center gap-2 font-medium transition-all border-none outline-none shadow-none relative overflow-hidden group"
+                              className="flex-1 bg-gradient-to-r from-[#4F46E5] via-[#7C3AED] to-[#DB2777] hover:from-[#4338CA] hover:via-[#6D28D9] hover:to-[#BE185D] text-white rounded-xl p-3.5 flex items-center justify-center gap-2 font-medium transition-all border-none outline-none"
                             >
-                              <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] bg-[length:250%_250%,100%_100%] animate-shimmer"></div>
                               <div className="relative flex items-center justify-center gap-2">
                                 <PlusIcon className="h-5 w-5" />
                                 <span>추가</span>
@@ -1285,10 +1311,10 @@ export default function TradingJournal() {
                         <div className="inline-block min-w-full align-middle">
                           <div className="overflow-hidden rounded-xl border border-white/10">
                             <table className="min-w-full divide-y divide-white/10">
-                              <thead className="bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10">
+                              <thead className="bg-[#1a1a1a]">
                                 <tr>
                                   <th scope="col" className="py-4 px-6 text-left text-sm font-semibold text-white">날짜</th>
-                                  <th scope="col" className="py-4 px-6 text-right text-sm font-semibold text-white">시작 금액</th>
+                                  <th scope="col" className="py-4 px-6 text-right text-sm font-semibold text-white hidden">시작 금액</th>
                                   <th scope="col" className="py-4 px-6 text-right text-sm font-semibold text-white">종료 금액</th>
                                   <th scope="col" className="py-4 px-6 text-right text-sm font-semibold text-white">수익금</th>
                                   <th scope="col" className="py-4 px-6 text-right text-sm font-semibold text-white">수익률</th>
@@ -1303,7 +1329,7 @@ export default function TradingJournal() {
                                     onClick={() => handleRowClick(index)}
                                   >
                                     <td className="py-4 px-6 text-sm text-white whitespace-nowrap">{formatDate(trade.date)}</td>
-                                    <td className="py-4 px-6 text-right text-sm text-white whitespace-nowrap">
+                                    <td className="py-4 px-6 text-right text-sm text-white whitespace-nowrap hidden">
                                       {formatNumber(trade.start_amount)} <span className="text-xs text-white/70">USDT</span>
                                     </td>
                                     <td className="py-4 px-6 text-right text-sm text-white whitespace-nowrap">
@@ -1352,8 +1378,7 @@ export default function TradingJournal() {
 
                   {/* 캘린더 */}
                   <div className="relative group">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-300"></div>
-                    <div className="relative bg-gradient-to-br from-[#1E293B]/95 to-[#0F172A]/95 backdrop-blur-2xl rounded-2xl shadow-xl p-6 border border-white/5">
+                    <div className="relative bg-[#1a1a1a] rounded-2xl shadow-xl p-6 border border-[#333]">
                       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
                         <h2 className="text-xl font-bold text-white">월별 거래 현황</h2>
                         <div className="flex items-center gap-2 bg-white/5 rounded-xl p-1">

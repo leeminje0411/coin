@@ -345,7 +345,7 @@ export default function TradesPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0B1120] via-[#0F172A] to-[#1E293B]">
+    <div className="min-h-screen bg-[#1a1a1a]">
       {/* 토스트 알림 */}
       <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ${
         toast.show ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'
@@ -405,154 +405,159 @@ export default function TradesPage() {
         </div>
       )}
 
-      <Navigation 
-        summary={summary}
-        btcPrice={btcPrice}
-        ethPrice={ethPrice}
-        solPrice={solPrice}
-        xrpPrice={xrpPrice}
-      />
-
-      <main className="container mx-auto px-4 py-8">
-        <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-300"></div>
-          <div className="relative bg-gradient-to-br from-[#1E293B]/95 to-[#0F172A]/95 backdrop-blur-2xl rounded-2xl shadow-xl p-6 border border-white/5">
-            <h2 className="text-xl font-bold text-white mb-6">거래 기록</h2>
-            
-            {/* 거래 입력 폼 */}
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">날짜</label>
-                  <input
-                    type="date"
-                    value={newTrade.date}
-                    onChange={(e) => handleDateChange(e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3.5 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all h-[50px]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">시작 금액</label>
-                  <input
-                    type="number"
-                    placeholder="시작 금액"
-                    value={newTrade.startAmount}
-                    onChange={(e) => setNewTrade({ ...newTrade, startAmount: e.target.value })}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3.5 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all h-[50px]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">종료 금액</label>
-                  <input
-                    type="number"
-                    placeholder="종료 금액"
-                    value={newTrade.endAmount}
-                    onChange={(e) => setNewTrade({ ...newTrade, endAmount: e.target.value })}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3.5 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all h-[50px]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                {editingIndex !== null ? (
-                  <>
-                    <button
-                      onClick={handleCancel}
-                      className="w-[120px] bg-slate-600/90 hover:bg-slate-500/90 text-white rounded-xl p-3.5 flex items-center justify-center gap-2 font-medium transition-all shadow-lg shadow-slate-500/25 h-[50px] border border-white/5"
-                    >
-                      취소
-                    </button>
-                    <div className="flex-1 flex items-center gap-3">
-                      <button
-                        onClick={() => requireAuth(handleAddTrade)}
-                        className="flex-1 bg-gradient-to-r from-[#4F46E5] via-[#7C3AED] to-[#DB2777] hover:from-[#4338CA] hover:via-[#6D28D9] hover:to-[#BE185D] text-white rounded-xl p-3.5 flex items-center justify-center gap-2 font-medium transition-all border-none outline-none shadow-none relative overflow-hidden group"
-                      >
-                        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] bg-[length:250%_250%,100%_100%] animate-shimmer"></div>
-                        <div className="relative flex items-center justify-center gap-2">
-                          <PencilIcon className="h-5 w-5" />
-                          <span>수정</span>
-                        </div>
-                      </button>
-                      <button
-                        onClick={() => requireAuth(() => {
-                          if (confirm('정말로 이 거래를 삭제하시겠습니까?')) {
-                            handleDelete(editingIndex);
-                            handleCancel();
-                          }
-                        })}
-                        className="w-[120px] bg-rose-500/90 hover:bg-rose-600/90 text-white rounded-xl p-3.5 flex items-center justify-center gap-2 font-medium transition-all shadow-lg shadow-rose-500/25 h-[50px] border border-white/5"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                        <span>삭제</span>
-                      </button>
+      <div className="flex">
+        <div className="flex-1 min-w-0">
+          <Navigation 
+            summary={summary}
+            btcPrice={btcPrice}
+            ethPrice={ethPrice}
+            solPrice={solPrice}
+            xrpPrice={xrpPrice}
+          />
+          <div className="p-8">
+            <main>
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-[#FF8000] to-[#FF9500] rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-300"></div>
+                <div className="relative bg-[#1a1a1a] rounded-2xl shadow-xl p-6 border border-[#333]">
+                  <h2 className="text-xl font-bold text-white mb-6">거래 기록</h2>
+                  
+                  {/* 거래 입력 폼 */}
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-white/70 mb-2">날짜</label>
+                        <input
+                          type="date"
+                          value={newTrade.date}
+                          onChange={(e) => handleDateChange(e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl p-3.5 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all h-[50px]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-white/70 mb-2">시작 금액</label>
+                        <input
+                          type="number"
+                          placeholder="시작 금액"
+                          value={newTrade.startAmount}
+                          onChange={(e) => setNewTrade({ ...newTrade, startAmount: e.target.value })}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl p-3.5 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all h-[50px]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-white/70 mb-2">종료 금액</label>
+                        <input
+                          type="number"
+                          placeholder="종료 금액"
+                          value={newTrade.endAmount}
+                          onChange={(e) => setNewTrade({ ...newTrade, endAmount: e.target.value })}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl p-3.5 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all h-[50px]"
+                        />
+                      </div>
                     </div>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => requireAuth(handleAddTrade)}
-                    className="flex-1 bg-gradient-to-r from-[#4F46E5] via-[#7C3AED] to-[#DB2777] hover:from-[#4338CA] hover:via-[#6D28D9] hover:to-[#BE185D] text-white rounded-xl p-3.5 flex items-center justify-center gap-2 font-medium transition-all border-none outline-none shadow-none relative overflow-hidden group"
-                  >
-                    <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] bg-[length:250%_250%,100%_100%] animate-shimmer"></div>
-                    <div className="relative flex items-center justify-center gap-2">
-                      <PlusIcon className="h-5 w-5" />
-                      <span>추가</span>
-                    </div>
-                  </button>
-                )}
-              </div>
-            </div>
 
-            {/* 거래 기록 테이블 */}
-            <div className="mt-8 overflow-x-auto">
-              <div className="inline-block min-w-full align-middle">
-                <div className="overflow-hidden rounded-xl border border-white/10">
-                  <table className="min-w-full divide-y divide-white/10">
-                    <thead className="bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10">
-                      <tr>
-                        <th scope="col" className="py-4 px-6 text-left text-sm font-semibold text-white">날짜</th>
-                        <th scope="col" className="py-4 px-6 text-right text-sm font-semibold text-white">시작 금액</th>
-                        <th scope="col" className="py-4 px-6 text-right text-sm font-semibold text-white">종료 금액</th>
-                        <th scope="col" className="py-4 px-6 text-right text-sm font-semibold text-white">수익금</th>
-                        <th scope="col" className="py-4 px-6 text-right text-sm font-semibold text-white">수익률</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/10">
-                      {trades.map((trade, index) => (
-                        <tr 
-                          key={index} 
-                          className="group/row relative hover:bg-white/5 transition-all cursor-pointer"
-                          onClick={() => handleRowClick(index)}
+                    <div className="flex items-center gap-3">
+                      {editingIndex !== null ? (
+                        <>
+                          <button
+                            onClick={handleCancel}
+                            className="w-[120px] bg-slate-600/90 hover:bg-slate-500/90 text-white rounded-xl p-3.5 flex items-center justify-center gap-2 font-medium transition-all shadow-lg shadow-slate-500/25 h-[50px] border border-white/5"
+                          >
+                            취소
+                          </button>
+                          <div className="flex-1 flex items-center gap-3">
+                            <button
+                              onClick={() => requireAuth(handleAddTrade)}
+                              className="flex-1 bg-gradient-to-r from-[#4F46E5] via-[#7C3AED] to-[#DB2777] hover:from-[#4338CA] hover:via-[#6D28D9] hover:to-[#BE185D] text-white rounded-xl p-3.5 flex items-center justify-center gap-2 font-medium transition-all border-none outline-none shadow-none relative overflow-hidden group"
+                            >
+                              <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] bg-[length:250%_250%,100%_100%] animate-shimmer"></div>
+                              <div className="relative flex items-center justify-center gap-2">
+                                <PencilIcon className="h-5 w-5" />
+                                <span>수정</span>
+                              </div>
+                            </button>
+                            <button
+                              onClick={() => requireAuth(() => {
+                                if (confirm('정말로 이 거래를 삭제하시겠습니까?')) {
+                                  handleDelete(editingIndex);
+                                  handleCancel();
+                                }
+                              })}
+                              className="w-[120px] bg-rose-500/90 hover:bg-rose-600/90 text-white rounded-xl p-3.5 flex items-center justify-center gap-2 font-medium transition-all shadow-lg shadow-rose-500/25 h-[50px] border border-white/5"
+                            >
+                              <TrashIcon className="h-5 w-5" />
+                              <span>삭제</span>
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => requireAuth(handleAddTrade)}
+                          className="flex-1 bg-gradient-to-r from-[#4F46E5] via-[#7C3AED] to-[#DB2777] hover:from-[#4338CA] hover:via-[#6D28D9] hover:to-[#BE185D] text-white rounded-xl p-3.5 flex items-center justify-center gap-2 font-medium transition-all border-none outline-none shadow-none relative overflow-hidden group"
                         >
-                          <td className="py-4 px-6 text-sm text-white whitespace-nowrap">{formatDate(trade.date)}</td>
-                          <td className="py-4 px-6 text-right text-sm text-white whitespace-nowrap">
-                            {formatNumber(trade.start_amount)} <span className="text-xs text-white/70">USDT</span>
-                          </td>
-                          <td className="py-4 px-6 text-right text-sm text-white whitespace-nowrap">
-                            {formatNumber(trade.end_amount)} <span className="text-xs text-white/70">USDT</span>
-                          </td>
-                          <td className={`py-4 px-6 text-right text-sm whitespace-nowrap ${
-                            trade.profit >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                          }`}>
-                            {formatNumber(trade.profit)} <span className="text-xs opacity-70">USDT</span>
-                          </td>
-                          <td className={`py-4 px-6 text-right text-sm whitespace-nowrap ${
-                            trade.profit_rate >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                          }`}>
-                            {trade.profit_rate.toFixed(2)}%
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] bg-[length:250%_250%,100%_100%] animate-shimmer"></div>
+                          <div className="relative flex items-center justify-center gap-2">
+                            <PlusIcon className="h-5 w-5" />
+                            <span>추가</span>
+                          </div>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 거래 기록 테이블 */}
+                  <div className="mt-8 overflow-x-auto">
+                    <div className="inline-block min-w-full align-middle">
+                      <div className="overflow-hidden rounded-xl border border-[#333]">
+                        <table className="min-w-full divide-y divide-[#333]">
+                          <thead className="bg-gradient-to-r from-[#FF8000]/10 to-[#FF9500]/10">
+                            <tr>
+                              <th scope="col" className="py-4 px-6 text-left text-sm font-semibold text-white">날짜</th>
+                              <th scope="col" className="py-4 px-6 text-right text-sm font-semibold text-white">시작 금액</th>
+                              <th scope="col" className="py-4 px-6 text-right text-sm font-semibold text-white">종료 금액</th>
+                              <th scope="col" className="py-4 px-6 text-right text-sm font-semibold text-white">수익금</th>
+                              <th scope="col" className="py-4 px-6 text-right text-sm font-semibold text-white">수익률</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#333]">
+                            {trades.map((trade, index) => (
+                              <tr 
+                                key={index} 
+                                className="group/row relative hover:bg-white/5 transition-all cursor-pointer"
+                                onClick={() => handleRowClick(index)}
+                              >
+                                <td className="py-4 px-6 text-sm text-white whitespace-nowrap">{formatDate(trade.date)}</td>
+                                <td className="py-4 px-6 text-right text-sm text-white whitespace-nowrap">
+                                  {formatNumber(trade.start_amount)} <span className="text-xs text-white/70">USDT</span>
+                                </td>
+                                <td className="py-4 px-6 text-right text-sm text-white whitespace-nowrap">
+                                  {formatNumber(trade.end_amount)} <span className="text-xs text-white/70">USDT</span>
+                                </td>
+                                <td className={`py-4 px-6 text-right text-sm whitespace-nowrap ${
+                                  trade.profit >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                                }`}>
+                                  {formatNumber(trade.profit)} <span className="text-xs opacity-70">USDT</span>
+                                </td>
+                                <td className={`py-4 px-6 text-right text-sm whitespace-nowrap ${
+                                  trade.profit_rate >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                                }`}>
+                                  {trade.profit_rate.toFixed(2)}%
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </main>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 } 

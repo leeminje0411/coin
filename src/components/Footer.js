@@ -5,7 +5,7 @@ export default function Footer({ btcPrice, ethPrice, solPrice, xrpPrice }) {
   }
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-[#1a1a1a] to-[#2a2a2a] border-t border-[#333] z-50">
+    <footer className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#333] z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-12">
           <div className="flex items-center space-x-8">

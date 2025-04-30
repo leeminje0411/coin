@@ -56,7 +56,7 @@ export default function Navigation({ summary, btcPrice, ethPrice, solPrice, xrpP
   };
 
   return (
-    <header className="sticky top-0 z-10 w-full bg-gradient-to-r from-[#1a1a1a] to-[#2a2a2a] border-b border-[#333]">
+    <header className="sticky top-0 z-10 w-full bg-[#1a1a1a] border-b border-[#333]">
       <div className="px-6">
         <div className="h-12 flex items-center">
           {/* 왼쪽: 로고와 시작/현재 자본 */}
