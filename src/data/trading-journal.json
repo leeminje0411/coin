@@ -1,0 +1,17 @@
+{
+  "trades": [
+    {
+      "date": "2024-04-23",
+      "startAmount": 1000,
+      "endAmount": 1050,
+      "profit": 50,
+      "profitRate": 5
+    }
+  ],
+  "summary": {
+    "totalStartAmount": 1000,
+    "totalEndAmount": 1050,
+    "totalProfit": 50,
+    "totalProfitRate": 5
+  }
+} 

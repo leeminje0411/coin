@@ -1,0 +1,33 @@
+{
+  "name": "coin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@binance/connector": "^3.6.1",
+    "@headlessui/react": "^2.2.1",
+    "@heroicons/react": "^2.2.0",
+    "@supabase/supabase-js": "^2.49.4",
+    "@tanstack/react-query": "^5.72.0",
+    "binance-api-node": "^0.12.9",
+    "chart.js": "^4.4.8",
+    "next": "15.2.4",
+    "react": "^19.0.0",
+    "react-chartjs-2": "^5.3.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.2"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/react": "^19.1.0",
+    "eslint": "^9",
+    "eslint-config-next": "15.2.4",
+    "tailwindcss": "^4"
+  }
+}
